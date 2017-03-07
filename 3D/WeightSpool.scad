@@ -401,7 +401,7 @@ module nfcHoles() {
 spoolConnector();
 
 translate([0,loadCellYOffset,0]) {
-//    spoolHolder();
+    spoolHolder();
 
     // + 50 to offset x
     // -2 or -8  z offset
