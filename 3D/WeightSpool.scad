@@ -15,10 +15,10 @@
 
 
 
-$fn=60;
+$fn=120;
 
 // Offset in the spool holder of the load cell.
-loadCellYOffset = 7;
+loadCellYOffset = 5;
 
 zZero = 5;
 
@@ -98,48 +98,53 @@ loadCellOffset = -48;
                         //cylinder(d=4, h=13);
                     }
                 }
-          //  }
+            }
         }
-    }
     }
 }
 
 module showNfcPcb() {
 nfcPcbHeight = 5;
-    
-        
-        difference() {
+            
+    translate([0,0,0]) {
+        // Comment out difference line when showing the model
+        // otherwise uncomment for printable model.
+        //difference() {
             union() {
-                cube([43, 40,1.6]);
+                cube([40, 43,1.6]);
                 // Dip switch. the tallest thing.
-                translate([8.6,8.6,1.6]) {
-                    cube([6,4,3]);
+                translate([8.6,43-8-6.6,1.6]) {
+                    #cube([5,6,3]);
+                }
+            }        
+            union() {
+                // Mounting holes.                
+                translate([7.5, 43-7.5,0]) {
+                    cylinder(d=3, h=60);
                 }
                 
-                // I2C Connection
-                translate([5,20-6,-8]) {
-                    cube([4,12,8]);
+                translate([40-7.5, 7.5,0]) {
+                    cylinder(d=3, h=60);
                 }
                 
                 // IRQ and Reset pins
-                translate([28,32,-8]) {
-                    cube([8,4,8]);
-                }
-            }
-            union() {
-                // Mounting holes.                
-                translate([43-7.5, 7.5,0]) {
-                    #cylinder(d=3, h=nfcPcbHeight+0.01);
+                translate([40-8,43-12-15,-2]) {
+                    cube([4,15,8]);
                 }
                 
-                translate([7.5, 40-7.5,0]) {
-                    #cylinder(d=3, h=nfcPcbHeight+0.01);
+                
+                // I2C Connection, 2mm up and allow 6mm for wires down
+                translate([(40/2)-5,43-36.8,-2]) {
+                    cube([10,4,8]);
                 }
             }
-        }
+        //}
+    }
 }
 
 module spoolConnector() {
+    
+loadCellFirstHoleYOffset = -26.5 + 3.5 + 55;
     
     // Connect the spool holder to the Ultimaker
     
@@ -148,31 +153,31 @@ module spoolConnector() {
             // This file comes from: http://www.thingiverse.com/thing:399598
             // Licensed under CC Share Alike.
             // https://creativecommons.org/licenses/by-sa/3.0/
-            import("Ultimaker2_Reel_Holder_for_40mm_hub_spoolsf825b18387f3bab11ff76988f6d71326-40mm_spool_holder_78mm.stl");
+            //import("Ultimaker2_Reel_Holder_for_40mm_hub_spoolsf825b18387f3bab11ff76988f6d71326-40mm_spool_holder_78mm.stl");
+            
+            // Use a stripped down version of the connector
+            // due to issues with OpenSCAD.
+            import("WeightSpool-1.stl");
             
             // Surround for the load cell
             translate([-(24/2),-36,0]) {
                 cube([24,91,22]);
             }
             
-            
-            // Stick a cone on the end to get the spool
+            // Stick a [cone|cylinder] on the end to get the spool
             // to sit on the main spool holder part.
             translate([0,38,zZero]) {
                 rotate([90,0,0]) {
                     // 35.5mm actual diameter.
                     //#cylinder(d1=51, d2=42,h=18);
-                    cylinder(d1=58, d2=46,h=12);
+                    //cylinder(d1=58, d2=46,h=12);
+                    // Don't want the spool sitting on the 
+                    // ramp as this will alter the weight.
+                    cylinder(d1=58, d2=58,h=16);
                 }
             }
             
-            // Put in cubes to allow a lower box to be screwed
-            // to the part for the elextronics
-            translate([0,38,0]) {
-                translate([-21,0,0]) {
-                  // electronicsBoxMountingCube();
-                }
-            }
+            addChimneys(loadCellFirstHoleYOffset);
         }
         union() {
             // Cutout for the load cell.
@@ -185,8 +190,6 @@ module spoolConnector() {
                 }
             }
             
-            loadCellFirstHoleYOffset = -26.5 + 6 + 55;
-            
             // Load cell screw holes        
             translate([0,loadCellFirstHoleYOffset  ,-1]) {
                 #loadCellLargeHole();
@@ -198,7 +201,7 @@ module spoolConnector() {
             
             // Chop off the main part to allow seperation 
             // and hence flex.
-            translate([0,30,5]) {
+            translate([0,27.5,5]) {
                 rotate([90,0,0]) {
                     // 45mm for spool holder.
                     // + 1mm to cut a gap in the 
@@ -222,24 +225,52 @@ module spoolConnector() {
             translate([-60/2,10,-25]) {
                cube([60,60,25]);
             }  
+            
+            // Holes to mount the electronics box.
+            translate([-21,28.5,-0.01]) {
+               #electronicsBoxMountingCube();
+            }
         }
     }
 }
 
+module miniChimney() {
+    cylinder(d=8, h=10);
+}
+
+module addChimneys(yPosition) {
+    translate([0,yPosition,25]) {
+        translate([-16,0,0]) {
+            miniChimney();
+        }
+        
+        translate([16,0,0]) {
+            miniChimney();
+        }
+    
+        translate([0,0,0]) {
+            cylinder(d=12, h=23);
+        }
+    }
+    
+}
+
+module electronicsCaseScrewHole() {
+    cylinder(d=3.5, h=40);
+    translate([0,0,5]) {
+        cylinder(d=6.5, h=35);
+    }
+}
+
 module electronicsBoxMountingCube() {
-    difference() {
-        union() {
-            //42
-            cube([38,7,10]);
-        }
-        union() {
-            translate([5,3.5,0]) {
-                cylinder(d=4.2, h=12);
-            }
-            translate([37,3.5,0]) {
-                cylinder(d=4.2, h=12);
-            }
-        }
+    // Push holes all the way through so we don't get supports
+    // and so that a bolt can be inserted from above making it easier
+    // to secure the lower bot.
+    translate([5,3.5,0]) {
+        electronicsCaseScrewHole();
+    }
+    translate([37,3.5,0]) {
+        electronicsCaseScrewHole();
     }
 }
 
@@ -249,17 +280,15 @@ module loadCellLargeHole() {
     translate([0,0,22]) {
         cylinder(d1=6, d2=10, h=2);
         translate([0,0,2]) {
-            cylinder(d=10, h=20);
+            cylinder(d=10, h=30);
         }
     }
 }
 
-
-
 module spoolHolder() {
     
-    startY = 20;
-    length = 84;
+startY = 20;
+length = 88;
         
      difference() {
           union() {   
@@ -270,7 +299,7 @@ module spoolHolder() {
             translate([0,20,zZero]) {
                 rotate([90,0,0]) {
                     // 35.5mm actual diameter.
-                    cylinder(d=45,h=84);
+                    cylinder(d=45,h=length);
                     //#cylinder(d=70,h=200);
                 }
             }
@@ -298,11 +327,11 @@ module spoolHolder() {
             
             translate([0,-loadCellYOffset,0]) {
                 // Cutout for the load cell.
-                translate([-(15/2),-29,-0.01]) {
-                    loadCellCutout();      
+                translate([-(15/2),-35,-0.01]) {
+                    #loadCellCutout();      
                 }
                 
-                translate([0,-26.5 + 6, 0]) {
+                translate([0,-26.5 + 3.5, 0]) {
                     loadCellHoles();
                 }
             }
@@ -326,10 +355,22 @@ module ledHole() {
         rotate([90,0,0]) {
             cylinder(d=3.2, h=80);        
             translate([0,0,0]) {
-                cylinder(d=4.2, h=69);
+                cylinder(d=5, h=69);
             }
         }
     }
+    
+    // little eye holes to make the led look like a nose.
+    translate([10,-74,14]) {
+        rotate([90,0,0]) {
+            #cylinder(d=5, h=2);
+        }
+    }    
+    translate([-10,-74,14]) {
+        rotate([90,0,0]) {
+            #cylinder(d=5, h=2);
+        }
+    }    
 }
 
 module loadCellCutout() {
@@ -370,14 +411,24 @@ module loadCellHoles() {
 }
 
 module nfcHole() {
-    cylinder(d=4.2, h=26);
-    translate([0, 0,6]) {
-        // Hole for the nut (nut rather than screw head
-        // so the distance past the PCB is fixed.
-        // into so that a nut can be used
-        // on the PCB rather than using a 
-        // brass push fit insert.
-        cylinder(d=6.5, h=30,$fn=6);
+    nutAndBolt = false;
+    
+    if (nutAndBolt) {
+        cylinder(d=4.2, h=26);
+        translate([0, 0,6]) {
+            // Hole for the nut (nut rather than screw head
+            // so the distance past the PCB is fixed.
+            // into so that a nut can be used
+            // on the PCB rather than using a 
+            // brass push fit insert.
+            // 6.5mm VERY tight for the nut.
+            cylinder(d=7.5, h=30,$fn=6);
+        }
+    } else {
+        #cylinder(d=4.2, h=6);
+        translate([0, 0,6]) {
+            #cylinder(d1=4.2, d2=0, h=10);
+        }
     }
 }
 
@@ -385,15 +436,13 @@ module nfcHoles() {
     
     nfcPcbHeight = 2;
 
-    // -42 to debug.
-    translate([-(43/2),-62 -0,0]) {
-        // Mounting holes.                
-        translate([43-7.5, 7.5,0]) {
+    translate([-(40/2),-46, -0.01]) {
+        translate([7.5, 43-7.5,0]) {
             nfcHole();
         }
-        
-        translate([7.5, 40-7.5,0]) {
-            nfcHole();
+            
+        translate([40-7.5, 7.5,0]) {
+            #nfcHole();
         }
     }
 }
@@ -401,20 +450,20 @@ module nfcHoles() {
 spoolConnector();
 
 translate([0,loadCellYOffset,0]) {
-    spoolHolder();
+    //spoolHolder();
 
-    // + 50 to offset x
-    // -2 or -8  z offset
-    translate([-(43/2)+0,-62,-4]) {
-    //    %showNfcPcb();
+    // 5mm spacer + 1.2mm pcb
+    translate([-(40/2)+0,-46,-(5+1.2)]) {
+        %showNfcPcb();
     }
 
-    translate([0,18,5]) {
+    translate([0,14,5]) {
         //%showSpool();
     }
 }
 
-translate([0,22.5,1]) {
+//translate([0,22.5,1]) {
+translate([0,20,1]) {
   //  %showLoadCellModel();
 }
 
